@@ -15,6 +15,7 @@
 @Search.searchable: true
 
 define root view entity ZPEDRO_C_TRAVEL_M
+  provider contract transactional_query
   as projection on ZPEDRO_I_TRAVEL_M
 {
       @UI.facet: [{
