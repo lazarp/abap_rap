@@ -24,13 +24,13 @@ define root view entity ZPEDRO_C_TRAVEL_M
           type:     #IDENTIFICATION_REFERENCE,
           label:    'Travel',
           position: 10 }]
-
-      @UI.hidden: true
+          
+      @UI:{ identification: [ { position: 9, label: 'Travel UUID'} ] }
   key mykey              as TravelUUID,
 
       @UI:{
           lineItem:       [ { position: 10, importance: #HIGH } ],
-          identification: [ { position: 10, label: 'Travel ID [1,...,99999999' } ] }
+          identification: [ { position: 10, label: 'Travel ID'} ] }
 
       @Search.defaultSearchElement: true
       travel_id          as TravelID,
@@ -88,7 +88,7 @@ define root view entity ZPEDRO_C_TRAVEL_M
       @UI:{
         lineItem:       [ { position: 70, importance: #HIGH },
                           { type: #FOR_ACTION, dataAction: 'acceptTravel', label: 'Accept Travel' } ],
-        identification: [ { position: 70, label: 'Status [O(Open)|A(Accepted)|X(Canceled)]' } ]
+        identification: [ { position: 70, label: 'Status' } ]
       }
       overall_status     as TravelStatus,
 
