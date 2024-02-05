@@ -107,6 +107,43 @@ CLASS lhc_Travel IMPLEMENTATION.
 
   METHOD validate_customer.
 
+    READ ENTITY IN LOCAL MODE zpedro_i_travel_m FROM VALUE #(
+      FOR <root_key> IN keys (
+          %key-mykey = <root_key>-mykey
+          %control   = VALUE #( customer_id = if_abap_behv=>mk-on )
+       )
+     )
+     RESULT DATA(lt_travel).
+
+    DATA lt_customer TYPE SORTED TABLE OF /dmo/customer WITH UNIQUE KEY customer_id.
+
+    lt_customer = CORRESPONDING #( lt_travel DISCARDING DUPLICATES MAPPING customer_id = customer_id EXCEPT * ).
+    DELETE lt_customer WHERE customer_id IS INITIAL.
+    CHECK lt_customer IS NOT INITIAL.
+
+    SELECT customer_id
+    FROM /dmo/customer
+    FOR ALL ENTRIES IN @lt_customer
+    WHERE customer_id = @lt_customer-customer_id
+    INTO TABLE @DATA(lt_customer_db).
+
+    LOOP AT lt_travel INTO DATA(ls_travel).
+
+      IF ls_travel-customer_id IS NOT INITIAL
+         AND NOT line_exists( lt_customer_db[ customer_id = ls_travel-customer_id ] ).
+
+        APPEND VALUE #( mykey = ls_travel-mykey ) TO failed-travel.
+        APPEND VALUE #( mykey                = ls_travel-mykey
+                        %msg                 = new_message( id       = /dmo/cx_flight_legacy=>customer_unkown-msgid
+                                                            number   = /dmo/cx_flight_legacy=>customer_unkown-msgno
+                                                            v1       = ls_travel-customer_id
+                                                            severity = if_abap_behv_message=>severity-error )
+                        %element-customer_id = if_abap_behv=>mk-on ) TO reported-travel.
+
+      ENDIF.
+
+    ENDLOOP.
+
   ENDMETHOD.
 
   METHOD validate_dates.
