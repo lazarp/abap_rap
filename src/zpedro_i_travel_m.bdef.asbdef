@@ -37,6 +37,6 @@ authorization master ( instance )
   validation validateAgency on save { field agency_id; }
 
   //determination
-  determination CalculateTravelKey on modify { create; }
+  determination CalculateTravelKey on modify { create; update; }
 
 }
