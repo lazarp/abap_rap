@@ -99,6 +99,33 @@ CLASS lhc_Travel IMPLEMENTATION.
 
   METHOD calculatetravelkey.
 
+    READ ENTITIES OF zpedro_i_travel_m IN LOCAL MODE
+        ENTITY travel
+        FIELDS ( travel_id )
+        WITH CORRESPONDING #( keys )
+        RESULT DATA(lt_travel).
+
+    DELETE lt_travel WHERE travel_id IS NOT INITIAL.
+    CHECK lt_travel IS NOT INITIAL.
+
+    "Get max travel ID
+    SELECT SINGLE
+        MAX( travel_id )
+    FROM zpedro_travel
+    INTO @DATA(lv_max_travelid).
+
+    "update involved instances
+    MODIFY ENTITIES OF zpedro_i_travel_m IN LOCAL MODE
+        ENTITY travel
+        UPDATE FIELDS ( travel_id )
+        WITH VALUE #(
+            FOR ls_travel IN lt_travel INDEX INTO i (
+                %key      = ls_travel-%key
+                travel_id = lv_max_travelid + i
+            )
+        )
+        REPORTED DATA(lt_reported).
+
   ENDMETHOD.
 
   METHOD set_status_completed.
