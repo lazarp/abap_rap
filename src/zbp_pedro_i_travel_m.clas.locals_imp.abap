@@ -148,6 +148,47 @@ CLASS lhc_Travel IMPLEMENTATION.
 
   METHOD validate_dates.
 
+  read entity IN LOCAL MODE zpedro_i_travel_m
+  from value #(
+    FOR <root_key> in keys (
+        %key-mykey = <root_key>-mykey
+        %control   = VALUE #( begin_date = if_abap_behv=>mk-on
+                              end_date   = if_abap_behv=>mk-on ) )
+  )
+  RESULT data(lt_travel).
+
+  loop at lt_travel into data(ls_travel).
+
+    if ls_travel-end_date < ls_travel-begin_date.
+
+    APPEND VALUE #( %key  = ls_travel-%key
+                    mykey = ls_travel-mykey ) to failed-travel.
+
+    APPEND VALUE #( %key  = ls_travel-%key
+                    %msg  = new_message( id       = /dmo/cx_flight_legacy=>end_date_before_begin_date-msgid
+                                         number   = /dmo/cx_flight_legacy=>end_date_before_begin_date-msgno
+                                         v1       = ls_travel-begin_date
+                                         v2       = ls_travel-end_date
+                                         v3       = ls_travel-travel_id
+                                         severity = if_abap_behv_message=>severity-error )
+                   %element-begin_date = if_abap_behv=>mk-on
+                   %element-end_date   = if_abap_behv=>mk-on ) to reported-travel.
+
+    ELSEIF ls_travel-begin_date < cl_abap_context_info=>get_system_date( ).  "begin_date must be in the future
+
+        APPEND VALUE #( %key    = ls_travel-%key
+                        mykey   = ls_travel-mykey ) TO failed-travel.
+
+        APPEND VALUE #( %key = ls_travel-%key
+                        %msg = new_message( id       = /dmo/cx_flight_legacy=>begin_date_before_system_date-msgid
+                                            number   = /dmo/cx_flight_legacy=>begin_date_before_system_date-msgno
+                                            severity = if_abap_behv_message=>severity-error )
+                        %element-begin_date = if_abap_behv=>mk-on ) TO reported-travel.
+
+    endif.
+
+  endloop.
+
   ENDMETHOD.
 
 ENDCLASS.
